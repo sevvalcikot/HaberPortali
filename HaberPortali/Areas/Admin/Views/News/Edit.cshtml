@@ -1,0 +1,11 @@
+@model NewsFormViewModel
+@{
+    ViewData["Title"] = "Haberi düzenle";
+}
+
+<partial name="_Form" model="Model" />
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>Admin.bindImagePreview('#ImageFile', '#imagePreview');</script>
+}

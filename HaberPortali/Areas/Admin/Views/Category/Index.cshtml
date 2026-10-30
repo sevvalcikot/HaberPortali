@@ -1,0 +1,56 @@
+@model List<CategoryListItemViewModel>
+@{
+    ViewData["Title"] = "Kategoriler";
+    var toggleUrl = Url.Action("ToggleActive", "Category", new { area = "Admin" });
+}
+
+<div class="panel">
+    <div class="panel-header">
+        <span class="text-muted small">@Model.Count kategori</span>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni kategori</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 admin-table">
+            <thead>
+                <tr>
+                    <th style="width: 70px;">Sıra</th>
+                    <th>Kategori</th>
+                    <th>Adres</th>
+                    <th class="text-center">Haber</th>
+                    <th class="text-center">Aktif</th>
+                    <th class="text-end">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var category in Model)
+                {
+                    <tr>
+                        <td class="text-muted">@category.DisplayOrder</td>
+                        <td>
+                            <div class="fw-medium">@category.Name</div>
+                            <div class="small text-muted">@category.Description</div>
+                        </td>
+                        <td><code>/kategori/@category.Slug</code></td>
+                        <td class="text-center">@category.NewsCount</td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input js-toggle" type="checkbox" role="switch" checked="@category.IsActive"
+                                       data-url="@toggleUrl" data-id="@category.Id" aria-label="Aktif" />
+                            </div>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Edit" asp-route-id="@category.Id" class="btn btn-sm btn-outline-primary" title="Düzenle"><i class="bi bi-pencil"></i></a>
+                            <form asp-action="Delete" asp-route-id="@category.Id" method="post" class="d-inline js-confirm"
+                                  data-confirm="&quot;@category.Name&quot; kategorisi silinecek. Emin misiniz?">
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil" disabled="@(category.NewsCount > 0)"><i class="bi bi-trash"></i></button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="panel-footer">
+        <span class="small text-muted"><i class="bi bi-info-circle"></i> İçinde haber bulunan kategoriler silinemez, pasif yapılabilir.</span>
+    </div>
+</div>

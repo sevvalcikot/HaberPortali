@@ -1,0 +1,122 @@
+@using HaberPortali.Repositories
+@inject IRepository<Comment> CommentRepository
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+    Func<string, string> active = name => string.Equals(currentController, name, StringComparison.OrdinalIgnoreCase) ? "active" : string.Empty;
+    var pendingCount = await CommentRepository.CountAsync(c => !c.IsApproved);
+    var isAdmin = User.IsInRole(Roles.Admin);
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] · Yönetim Paneli</title>
+    <link rel="icon" href="~/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <div class="admin-shell">
+        <aside class="admin-sidebar">
+            <a class="admin-brand" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                <span class="brand-mark">H</span>
+                <span class="brand-text">Haber<strong>Portalı</strong><small>Yönetim Paneli</small></span>
+            </a>
+
+            <nav class="admin-nav">
+                <div class="nav-label">Genel</div>
+                <a class="admin-nav-link @active("Dashboard")" asp-area="Admin" asp-controller="Dashboard" asp-action="Index">
+                    <i class="bi bi-grid-1x2"></i> Gösterge paneli
+                </a>
+
+                <div class="nav-label">İçerik</div>
+                <a class="admin-nav-link @active("News")" asp-area="Admin" asp-controller="News" asp-action="Index">
+                    <i class="bi bi-newspaper"></i> Haberler
+                </a>
+                <a class="admin-nav-link @active("Comment")" asp-area="Admin" asp-controller="Comment" asp-action="Index">
+                    <i class="bi bi-chat-left-text"></i> Yorumlar
+                    <span class="badge rounded-pill text-bg-danger ms-auto js-pending-count @(pendingCount == 0 ? "d-none" : "")">@pendingCount</span>
+                </a>
+                <a class="admin-nav-link @active("Tag")" asp-area="Admin" asp-controller="Tag" asp-action="Index">
+                    <i class="bi bi-tags"></i> Etiketler
+                </a>
+
+                @if (isAdmin)
+                {
+                    <div class="nav-label">Yönetim</div>
+                    <a class="admin-nav-link @active("Category")" asp-area="Admin" asp-controller="Category" asp-action="Index">
+                        <i class="bi bi-folder2"></i> Kategoriler
+                    </a>
+                    <a class="admin-nav-link @active("User")" asp-area="Admin" asp-controller="User" asp-action="Index">
+                        <i class="bi bi-people"></i> Kullanıcılar
+                    </a>
+                }
+            </nav>
+
+            <a class="admin-site-link" asp-area="" asp-controller="Home" asp-action="Index" target="_blank">
+                <i class="bi bi-box-arrow-up-right"></i> Siteyi görüntüle
+            </a>
+        </aside>
+
+        <div class="admin-main">
+            <header class="admin-topbar">
+                <button type="button" class="btn btn-light d-lg-none" id="sidebarToggle" aria-label="Menüyü aç/kapat">
+                    <i class="bi bi-list"></i>
+                </button>
+                <h1 class="admin-page-title">@ViewData["Title"]</h1>
+
+                <div class="dropdown ms-auto">
+                    <button class="btn admin-user-btn dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <span class="avatar">@(User.GetFullName().Length > 0 ? User.GetFullName().Substring(0, 1) : "?")</span>
+                        <span class="d-none d-sm-inline">@User.GetFullName()</span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                        <li><span class="dropdown-item-text small text-muted">Rol: @Roles.DisplayName(isAdmin ? Roles.Admin : Roles.Editor)</span></li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <form asp-area="Admin" asp-controller="Account" asp-action="Logout" method="post">
+                                <button type="submit" class="dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Çıkış yap</button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
+            </header>
+
+            <main class="admin-content">
+                @if (TempData["Success"] is string successMessage)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="bi bi-check-circle me-2"></i>@successMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+                    </div>
+                }
+                @if (TempData["Error"] is string errorMessage)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle me-2"></i>@errorMessage
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Kapat"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastContainer"></div>
+
+    @* AJAX isteklerinde kullanılacak güvenlik (anti-forgery) anahtarı *@
+    <form id="antiForgeryForm" class="d-none">@Html.AntiForgeryToken()</form>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/admin.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

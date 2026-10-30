@@ -1,0 +1,110 @@
+@model NewsListViewModel
+@{
+    ViewData["Title"] = "Haberler";
+    var toggleUrl = Url.Action("Toggle", "News", new { area = "Admin" });
+    var isAdmin = User.IsInRole(Roles.Admin);
+}
+
+<div class="panel">
+    <div class="panel-header flex-wrap gap-2">
+        <form method="get" asp-action="Index" class="d-flex flex-wrap gap-2 flex-grow-1">
+            <div class="input-group" style="max-width: 320px;">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="search" name="search" value="@Model.Search" class="form-control" placeholder="Başlık veya özette ara" />
+            </div>
+            <select name="categoryId" class="form-select" style="max-width: 200px;" onchange="this.form.submit()">
+                <option value="">Tüm kategoriler</option>
+                @foreach (var category in Model.Categories)
+                {
+                    <option value="@category.Id" selected="@(Model.CategoryId == category.Id)">@category.Name</option>
+                }
+            </select>
+            <button type="submit" class="btn btn-outline-secondary">Filtrele</button>
+            @if (!string.IsNullOrEmpty(Model.Search) || Model.CategoryId.HasValue)
+            {
+                <a asp-action="Index" class="btn btn-link text-decoration-none">Temizle</a>
+            }
+        </form>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-plus-lg"></i> Yeni haber</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 admin-table">
+            <thead>
+                <tr>
+                    <th>Haber</th>
+                    <th>Kategori</th>
+                    <th>Yayın tarihi</th>
+                    <th class="text-center">Okunma</th>
+                    <th class="text-center" title="Sitede görünür">Yayında</th>
+                    <th class="text-center">Manşet</th>
+                    <th class="text-center">Son dakika</th>
+                    <th class="text-end">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var news in Model.Items)
+                {
+                    <tr>
+                        <td style="min-width: 280px;">
+                            <div class="d-flex gap-3 align-items-center">
+                                <img src="@(news.ImagePath ?? "/images/placeholder.svg")" alt="" class="thumb" />
+                                <div class="min-w-0">
+                                    <div class="fw-medium">@news.Title</div>
+                                    <div class="small text-muted">@news.Author.FullName</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge text-bg-light border">@news.Category.Name</span></td>
+                        <td class="small text-nowrap">
+                            @news.PublishedAt.ToString("dd.MM.yyyy HH:mm")
+                            @if (news.PublishedAt > DateTime.Now)
+                            {
+                                <div><span class="badge text-bg-info">İleri tarihli</span></div>
+                            }
+                        </td>
+                        <td class="text-center">@news.ViewCount.ToString("N0")</td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input js-toggle" type="checkbox" role="switch" checked="@news.IsActive"
+                                       data-url="@toggleUrl" data-id="@news.Id" data-field="active" aria-label="Yayında" />
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input js-toggle" type="checkbox" role="switch" checked="@news.IsHeadline"
+                                       data-url="@toggleUrl" data-id="@news.Id" data-field="headline" aria-label="Manşet" />
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input js-toggle switch-danger" type="checkbox" role="switch" checked="@news.IsBreaking"
+                                       data-url="@toggleUrl" data-id="@news.Id" data-field="breaking" aria-label="Son dakika" />
+                            </div>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a href="/haber/@news.Id/@news.Slug" target="_blank" class="btn btn-sm btn-light" title="Sitede gör"><i class="bi bi-box-arrow-up-right"></i></a>
+                            <a asp-action="Edit" asp-route-id="@news.Id" class="btn btn-sm btn-outline-primary" title="Düzenle"><i class="bi bi-pencil"></i></a>
+                            @if (isAdmin)
+                            {
+                                <form asp-action="Delete" asp-route-id="@news.Id" method="post" class="d-inline js-confirm"
+                                      data-confirm="&quot;@news.Title&quot; haberi ve tüm yorumları silinecek. Emin misiniz?">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil"><i class="bi bi-trash"></i></button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="8" class="p-5 text-center text-muted">Aramanıza uygun haber bulunamadı.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="panel-footer">
+        <span class="small text-muted">Toplam @Model.TotalCount haber</span>
+        <partial name="_Pagination" model="Model" />
+    </div>
+</div>

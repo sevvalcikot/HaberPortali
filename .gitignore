@@ -1,0 +1,18 @@
+# Visual Studio / .NET
+.vs/
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+[Dd]ebug/
+[Rr]elease/
+*.log
+
+# Kullanıcıların yüklediği haber görselleri (örnek görseller wwwroot/images altında kalır)
+HaberPortali/wwwroot/uploads/
+
+# macOS / Windows
+.DS_Store
+Thumbs.db

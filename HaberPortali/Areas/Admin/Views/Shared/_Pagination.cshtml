@@ -1,0 +1,20 @@
+@model NewsListViewModel
+@if (Model.TotalPages > 1)
+{
+    <nav aria-label="Sayfalar">
+        <ul class="pagination pagination-sm mb-0">
+            <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page - 1)" asp-route-search="@Model.Search" asp-route-categoryId="@Model.CategoryId">‹</a>
+            </li>
+            @for (var i = 1; i <= Model.TotalPages; i++)
+            {
+                <li class="page-item @(i == Model.Page ? "active" : "")">
+                    <a class="page-link" asp-action="Index" asp-route-page="@i" asp-route-search="@Model.Search" asp-route-categoryId="@Model.CategoryId">@i</a>
+                </li>
+            }
+            <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@(Model.Page + 1)" asp-route-search="@Model.Search" asp-route-categoryId="@Model.CategoryId">›</a>
+            </li>
+        </ul>
+    </nav>
+}

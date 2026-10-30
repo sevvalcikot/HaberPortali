@@ -1,0 +1,16 @@
+@model List<News>
+@if (Model.Any())
+{
+    <section class="side-box">
+        <h2 class="section-title"><span>En çok okunanlar</span></h2>
+        <ol class="most-read-list">
+            @foreach (var news in Model)
+            {
+                <li>
+                    <a href="/haber/@news.Id/@news.Slug">@news.Title</a>
+                    <span class="meta">@news.Category.Name · @news.ViewCount.ToString("N0") okunma</span>
+                </li>
+            }
+        </ol>
+    </section>
+}

@@ -1,0 +1,97 @@
+@model NewsFormViewModel
+@{
+    var isEdit = Model.Id > 0;
+}
+
+<form asp-action="@(isEdit ? "Edit" : "Create")" method="post" enctype="multipart/form-data" novalidate>
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="ExistingImagePath" />
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="row g-3">
+        <div class="col-lg-8">
+            <div class="panel p-3 p-md-4">
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label"></label>
+                    <input asp-for="Title" class="form-control form-control-lg" placeholder="Haberin başlığı" />
+                    <span asp-validation-for="Title" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Summary" class="form-label"></label>
+                    <textarea asp-for="Summary" class="form-control" rows="3" placeholder="Listelerde ve başlığın altında görünecek kısa açıklama"></textarea>
+                    <span asp-validation-for="Summary" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-0">
+                    <label asp-for="Content" class="form-label"></label>
+                    <textarea asp-for="Content" class="form-control" rows="14" placeholder="Paragrafları boş bir satırla ayırın."></textarea>
+                    <div class="form-text">Paragrafları birbirinden bir boş satırla ayırın.</div>
+                    <span asp-validation-for="Content" class="text-danger small"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="panel p-3 mb-3">
+                <h2 class="panel-title mb-3">Yayın ayarları</h2>
+
+                <div class="mb-3">
+                    <label asp-for="CategoryId" class="form-label"></label>
+                    <select asp-for="CategoryId" asp-items="Model.Categories" class="form-select">
+                        <option value="0">Kategori seçin</option>
+                    </select>
+                    <span asp-validation-for="CategoryId" class="text-danger small"></span>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="PublishedAt" class="form-label"></label>
+                    <input asp-for="PublishedAt" type="datetime-local" class="form-control" />
+                    <div class="form-text">İleri bir tarih seçilirse haber o tarihte yayına girer.</div>
+                    <span asp-validation-for="PublishedAt" class="text-danger small"></span>
+                </div>
+
+                <div class="form-check form-switch mb-2">
+                    <input asp-for="IsActive" class="form-check-input" role="switch" />
+                    <label asp-for="IsActive" class="form-check-label"></label>
+                </div>
+                <div class="form-check form-switch mb-2">
+                    <input asp-for="IsHeadline" class="form-check-input" role="switch" />
+                    <label asp-for="IsHeadline" class="form-check-label"></label>
+                </div>
+                <div class="form-check form-switch">
+                    <input asp-for="IsBreaking" class="form-check-input switch-danger" role="switch" />
+                    <label asp-for="IsBreaking" class="form-check-label"></label>
+                </div>
+            </div>
+
+            <div class="panel p-3 mb-3">
+                <h2 class="panel-title mb-3">Görsel</h2>
+                <img id="imagePreview" src="@(Model.ExistingImagePath ?? "/images/placeholder.svg")" alt="Görsel önizleme" class="image-preview mb-3" />
+                <input asp-for="ImageFile" type="file" class="form-control" accept=".jpg,.jpeg,.png,.webp" />
+                <div class="form-text">JPG, PNG veya WEBP, en fazla 3 MB.</div>
+                <span asp-validation-for="ImageFile" class="text-danger small"></span>
+                @if (!string.IsNullOrEmpty(Model.ExistingImagePath))
+                {
+                    <div class="form-check mt-2">
+                        <input asp-for="RemoveImage" class="form-check-input" />
+                        <label asp-for="RemoveImage" class="form-check-label"></label>
+                    </div>
+                }
+            </div>
+
+            <div class="panel p-3 mb-3">
+                <label asp-for="TagsText" class="form-label panel-title"></label>
+                <input asp-for="TagsText" class="form-control" placeholder="ekonomi, turizm, sezon" />
+                <div class="form-text">Etiketleri virgülle ayırın. Olmayan etiketler otomatik oluşturulur.</div>
+            </div>
+
+            <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="bi bi-check2"></i> @(isEdit ? "Değişiklikleri kaydet" : "Haberi kaydet")
+                </button>
+                <a asp-action="Index" class="btn btn-light">Vazgeç</a>
+            </div>
+        </div>
+    </div>
+</form>

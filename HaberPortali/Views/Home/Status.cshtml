@@ -1,0 +1,17 @@
+@model int
+@{
+    var notFound = Model == 404;
+    ViewData["Title"] = notFound ? "Sayfa bulunamadı" : "Bir sorun oluştu";
+}
+
+<div class="empty-state py-5">
+    <div class="status-code">@Model</div>
+    <h1 class="h3 mt-2">@(notFound ? "Aradığınız sayfa bulunamadı" : "İsteğiniz tamamlanamadı")</h1>
+    <p class="text-muted">
+        @(notFound ? "Haber yayından kaldırılmış ya da adres yanlış yazılmış olabilir." : "Lütfen biraz sonra tekrar deneyin.")
+    </p>
+    <div class="d-flex gap-2 justify-content-center mt-3">
+        <a href="/" class="btn btn-dark">Ana sayfaya dön</a>
+        <a href="/ara" class="btn btn-outline-dark">Haberlerde ara</a>
+    </div>
+</div>

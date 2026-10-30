@@ -1,0 +1,157 @@
+@model DashboardViewModel
+@{
+    ViewData["Title"] = "Gösterge paneli";
+    var maxCategory = Model.CategoryStats.Count > 0 ? Math.Max(1, Model.CategoryStats.Max(c => c.NewsCount)) : 1;
+}
+
+<p class="text-muted mb-4">Hoş geldin, <strong>@User.GetFullName()</strong>. Sitenin genel durumu aşağıda.</p>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-primary-subtle text-primary"><i class="bi bi-newspaper"></i></div>
+            <div>
+                <div class="stat-value">@Model.NewsCount</div>
+                <div class="stat-label">Haber <span class="text-muted">(@Model.ActiveNewsCount yayında)</span></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-success-subtle text-success"><i class="bi bi-eye"></i></div>
+            <div>
+                <div class="stat-value">@Model.TotalViews.ToString("N0")</div>
+                <div class="stat-label">Toplam okunma</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-xl-3">
+        <a asp-controller="Comment" asp-action="Index" class="stat-card stat-card-link">
+            <div class="stat-icon bg-warning-subtle text-warning-emphasis"><i class="bi bi-chat-left-dots"></i></div>
+            <div>
+                <div class="stat-value js-pending-number">@Model.PendingCommentCount</div>
+                <div class="stat-label">Onay bekleyen yorum</div>
+            </div>
+        </a>
+    </div>
+    <div class="col-6 col-xl-3">
+        <div class="stat-card">
+            <div class="stat-icon bg-info-subtle text-info-emphasis"><i class="bi bi-people"></i></div>
+            <div>
+                <div class="stat-value">@Model.UserCount</div>
+                <div class="stat-label">Kullanıcı · @Model.CategoryCount kategori · @Model.TagCount etiket</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-8">
+        <div class="panel h-100">
+            <div class="panel-header">
+                <h2 class="panel-title">Son eklenen haberler</h2>
+                <a asp-controller="News" asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus-lg"></i> Yeni haber</a>
+            </div>
+            <div class="list-group list-group-flush">
+                @foreach (var news in Model.LatestNews)
+                {
+                    <a asp-controller="News" asp-action="Edit" asp-route-id="@news.Id" class="list-group-item list-group-item-action d-flex gap-3 align-items-center">
+                        <img src="@(news.ImagePath ?? "/images/placeholder.svg")" alt="" class="thumb" />
+                        <div class="flex-grow-1 min-w-0">
+                            <div class="fw-medium text-truncate">@news.Title</div>
+                            <div class="small text-muted">
+                                @news.Category.Name · @TextHelper.TimeAgo(news.PublishedAt)
+                                @if (!news.IsActive) { <span class="badge text-bg-secondary ms-1">Pasif</span> }
+                                @if (news.IsHeadline) { <span class="badge text-bg-primary ms-1">Manşet</span> }
+                                @if (news.IsBreaking) { <span class="badge text-bg-danger ms-1">Son dakika</span> }
+                            </div>
+                        </div>
+                        <span class="small text-muted text-nowrap"><i class="bi bi-eye"></i> @news.ViewCount</span>
+                    </a>
+                }
+                @if (!Model.LatestNews.Any())
+                {
+                    <div class="p-4 text-center text-muted">Henüz haber eklenmemiş.</div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="panel mb-3">
+            <div class="panel-header">
+                <h2 class="panel-title">Kategorilere göre haber</h2>
+            </div>
+            <div class="p-3">
+                @foreach (var stat in Model.CategoryStats)
+                {
+                    var percent = stat.NewsCount * 100 / maxCategory;
+                    <div class="mb-2">
+                        <div class="d-flex justify-content-between small"><span>@stat.Name</span><span class="text-muted">@stat.NewsCount</span></div>
+                        <div class="progress" role="progressbar" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100" style="height: 6px;">
+                            <div class="progress-bar" style="width: @percent%"></div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title">En çok okunanlar</h2>
+            </div>
+            <ol class="most-read">
+                @foreach (var news in Model.MostRead)
+                {
+                    <li>
+                        <a asp-controller="News" asp-action="Edit" asp-route-id="@news.Id">@news.Title</a>
+                        <span class="small text-muted">@news.ViewCount.ToString("N0") okunma</span>
+                    </li>
+                }
+            </ol>
+        </div>
+    </div>
+
+    <div class="col-12">
+        <div class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title">Onay bekleyen yorumlar</h2>
+                <a asp-controller="Comment" asp-action="Index" class="btn btn-sm btn-outline-secondary">Tümünü gör</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <tbody>
+                        @foreach (var comment in Model.PendingComments)
+                        {
+                            <tr id="comment-row-@comment.Id">
+                                <td style="width: 28%">
+                                    <div class="fw-medium">@comment.User.FullName</div>
+                                    <div class="small text-muted text-truncate" style="max-width: 260px">@comment.News.Title</div>
+                                </td>
+                                <td>@comment.Text</td>
+                                <td class="text-end text-nowrap">
+                                    <button type="button" class="btn btn-sm btn-success js-approve" data-id="@comment.Id" data-remove-row="true">
+                                        <i class="bi bi-check-lg"></i> Onayla
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger js-delete-comment" data-id="@comment.Id">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                        @if (!Model.PendingComments.Any())
+                        {
+                            <tr><td class="p-4 text-center text-muted">Onay bekleyen yorum yok.</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        Admin.bindCommentActions('@Url.Action("ToggleApprove", "Comment", new { area = "Admin" })', '@Url.Action("Delete", "Comment", new { area = "Admin" })');
+    </script>
+}

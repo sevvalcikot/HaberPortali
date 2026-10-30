@@ -1,0 +1,79 @@
+@model NewsArchiveViewModel
+@{
+    ViewData["Title"] = Model.Title;
+    ViewData["Description"] = Model.Description;
+    var kindLabel = Model.Kind == "tag" ? "Etiket" : Model.Kind == "search" ? "Arama" : "Kategori";
+
+    string PageUrl(int page)
+    {
+        return Model.Kind switch
+        {
+            "search" => $"/ara?q={Uri.EscapeDataString(Model.Query ?? string.Empty)}&page={page}",
+            "tag" => $"/etiket/{Model.Slug}?page={page}",
+            _ => $"/kategori/{Model.Slug}?page={page}"
+        };
+    }
+}
+
+<div class="archive-head">
+    <span class="kicker">@kindLabel</span>
+    <h1 class="archive-title">@Model.Title</h1>
+    @if (!string.IsNullOrEmpty(Model.Description))
+    {
+        <p class="text-muted mb-0">@Model.Description</p>
+    }
+    @if (Model.Kind == "search")
+    {
+        <form action="/ara" method="get" class="archive-search mt-3" role="search">
+            <input type="search" name="q" value="@Model.Query" class="form-control form-control-lg" placeholder="Ne aramak istersiniz?" autofocus />
+            <button type="submit" class="btn btn-dark btn-lg"><i class="bi bi-search"></i> Ara</button>
+        </form>
+    }
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        @if (Model.Items.Any())
+        {
+            <div class="row g-4">
+                @foreach (var news in Model.Items)
+                {
+                    <div class="col-md-6 col-xl-4">
+                        <partial name="_NewsCard" model="news" />
+                    </div>
+                }
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="mt-5" aria-label="Sayfalar">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item @(Model.Page <= 1 ? "disabled" : "")">
+                            <a class="page-link" href="@PageUrl(Model.Page - 1)">‹ Önceki</a>
+                        </li>
+                        @for (var i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.Page ? "active" : "")"><a class="page-link" href="@PageUrl(i)">@i</a></li>
+                        }
+                        <li class="page-item @(Model.Page >= Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" href="@PageUrl(Model.Page + 1)">Sonraki ›</a>
+                        </li>
+                    </ul>
+                </nav>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-search"></i>
+                <p>@(Model.Kind == "search" && !string.IsNullOrEmpty(Model.Query) ? "Aramanıza uygun haber bulunamadı. Farklı bir kelime deneyin." : "Bu bölümde henüz haber yok.")</p>
+            </div>
+        }
+    </div>
+
+    <aside class="col-lg-4">
+        <div class="sticky-lg-top" style="top: 1rem;">
+            <partial name="_MostRead" model="Model.MostRead" />
+        </div>
+    </aside>
+</div>

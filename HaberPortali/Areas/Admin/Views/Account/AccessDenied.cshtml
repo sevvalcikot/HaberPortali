@@ -1,0 +1,22 @@
+@{
+    ViewData["Title"] = "Erişim engellendi";
+    Layout = "_LoginLayout";
+}
+
+<div class="login-wrap">
+    <div class="login-card text-center">
+        <div class="denied-icon"><i class="bi bi-shield-lock"></i></div>
+        <h1 class="h4 mt-3">Bu sayfaya erişim yetkiniz yok</h1>
+        <p class="text-muted">
+            Görüntülemek istediğiniz sayfa yalnızca belirli rollere açıktır.
+            Farklı bir hesapla giriş yapabilir ya da panele geri dönebilirsiniz.
+        </p>
+        <div class="d-flex gap-2 justify-content-center mt-4">
+            @if (User.Identity?.IsAuthenticated == true && (User.IsInRole(Roles.Admin) || User.IsInRole(Roles.Editor)))
+            {
+                <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="btn btn-primary">Panele dön</a>
+            }
+            <a asp-area="Admin" asp-controller="Account" asp-action="Login" class="btn btn-outline-secondary">Farklı hesapla giriş</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,78 @@
+@model LoginViewModel
+@inject IWebHostEnvironment Env
+@{
+    ViewData["Title"] = "Giriş yap";
+    Layout = "_LoginLayout";
+}
+
+<div class="login-wrap">
+    <div class="login-card">
+        <div class="text-center mb-4">
+            <span class="brand-mark brand-mark-lg">H</span>
+            <h1 class="h4 mt-3 mb-1">Yönetim paneline giriş</h1>
+            <p class="text-muted small mb-0">Haber Portalı editör ve yönetici girişi</p>
+        </div>
+
+        <form asp-area="Admin" asp-controller="Account" asp-action="Login" method="post" novalidate>
+            <input type="hidden" asp-for="ReturnUrl" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger py-2 small"></div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                    <input asp-for="Email" class="form-control" placeholder="ornek@haberportali.com" autocomplete="username" autofocus />
+                </div>
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Password" class="form-label"></label>
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                    <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                    <button class="btn btn-outline-secondary" type="button" id="togglePassword" aria-label="Şifreyi göster">
+                        <i class="bi bi-eye"></i>
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="text-danger small"></span>
+            </div>
+
+            <div class="form-check mb-4">
+                <input asp-for="RememberMe" class="form-check-input" />
+                <label asp-for="RememberMe" class="form-check-label"></label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2">
+                <i class="bi bi-box-arrow-in-right me-1"></i> Giriş yap
+            </button>
+        </form>
+
+        <div class="text-center mt-4">
+            <a asp-area="" asp-controller="Home" asp-action="Index" class="small text-decoration-none">
+                <i class="bi bi-arrow-left"></i> Siteye dön
+            </a>
+        </div>
+    </div>
+
+    @if (Env.IsDevelopment())
+    {
+        <div class="demo-accounts">
+            <div class="fw-semibold mb-1"><i class="bi bi-info-circle me-1"></i>Deneme hesapları</div>
+            <div>Yönetici: <code>admin@haberportali.com</code> / <code>Admin123!</code></div>
+            <div>Editör: <code>editor@haberportali.com</code> / <code>Editor123!</code></div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        $('#togglePassword').on('click', function () {
+            const $input = $('#Password');
+            const isHidden = $input.attr('type') === 'password';
+            $input.attr('type', isHidden ? 'text' : 'password');
+            $(this).find('i').toggleClass('bi-eye bi-eye-slash');
+        });
+    </script>
+}

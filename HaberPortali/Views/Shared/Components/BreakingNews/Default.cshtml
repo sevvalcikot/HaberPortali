@@ -1,0 +1,23 @@
+@model List<News>
+@if (Model.Any())
+{
+    <div class="breaking-bar">
+        <div class="container d-flex align-items-center">
+            <span class="breaking-label"><span class="pulse"></span>SON DAKİKA</span>
+            <div class="breaking-track">
+                <div class="breaking-items">
+                    @* Kesintisiz kayma için liste iki kez yazılır. *@
+                    @for (var copy = 0; copy < 2; copy++)
+                    {
+                        foreach (var news in Model)
+                        {
+                            <a href="/haber/@news.Id/@news.Slug" aria-hidden="@(copy == 1 ? "true" : "false")" tabindex="@(copy == 1 ? "-1" : "0")">
+                                <span class="time">@news.PublishedAt.ToString("HH:mm")</span>@news.Title
+                            </a>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

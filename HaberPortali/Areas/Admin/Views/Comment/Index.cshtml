@@ -1,0 +1,85 @@
+@model CommentListViewModel
+@{
+    ViewData["Title"] = "Yorumlar";
+}
+
+<div class="panel">
+    <div class="panel-header">
+        <ul class="nav nav-pills nav-pills-sm">
+            <li class="nav-item">
+                <a class="nav-link @(Model.Status == "pending" ? "active" : "")" asp-action="Index" asp-route-status="pending">
+                    Onay bekleyen <span class="badge text-bg-light ms-1 js-pending-number">@Model.PendingCount</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(Model.Status == "approved" ? "active" : "")" asp-action="Index" asp-route-status="approved">
+                    Onaylanan <span class="badge text-bg-light ms-1">@Model.ApprovedCount</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(Model.Status == "all" ? "active" : "")" asp-action="Index" asp-route-status="all">Tümü</a>
+            </li>
+        </ul>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table align-middle mb-0 admin-table">
+            <thead>
+                <tr>
+                    <th style="width: 22%;">Yazan</th>
+                    <th>Yorum</th>
+                    <th style="width: 120px;">Durum</th>
+                    <th class="text-end" style="width: 170px;">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var comment in Model.Items)
+                {
+                    <tr id="comment-row-@comment.Id">
+                        <td>
+                            <div class="fw-medium">@comment.User.FullName</div>
+                            <div class="small text-muted">@comment.CreatedAt.ToString("dd.MM.yyyy HH:mm")</div>
+                        </td>
+                        <td>
+                            <div>@comment.Text</div>
+                            <a href="/haber/@comment.NewsId/@comment.News.Slug" target="_blank" class="small text-muted text-decoration-none">
+                                <i class="bi bi-link-45deg"></i>@TextHelper.Shorten(comment.News.Title, 70)
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge js-status @(comment.IsApproved ? "text-bg-success" : "text-bg-warning")">
+                                @(comment.IsApproved ? "Onaylı" : "Bekliyor")
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <button type="button" class="btn btn-sm js-approve @(comment.IsApproved ? "btn-outline-secondary" : "btn-success")"
+                                    data-id="@comment.Id" data-remove-row="@(Model.Status != "all" ? "true" : "false")">
+                                @if (comment.IsApproved)
+                                {
+                                    <span><i class="bi bi-x-lg"></i> Onayı kaldır</span>
+                                }
+                                else
+                                {
+                                    <span><i class="bi bi-check-lg"></i> Onayla</span>
+                                }
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger js-delete-comment" data-id="@comment.Id" title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="4" class="p-5 text-center text-muted">Bu listede yorum yok.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        Admin.bindCommentActions('@Url.Action("ToggleApprove", "Comment", new { area = "Admin" })', '@Url.Action("Delete", "Comment", new { area = "Admin" })');
+    </script>
+}

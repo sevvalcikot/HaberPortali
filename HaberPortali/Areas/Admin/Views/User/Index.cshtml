@@ -1,0 +1,67 @@
+@model List<User>
+@{
+    ViewData["Title"] = "Kullanıcılar";
+    var toggleUrl = Url.Action("ToggleActive", "User", new { area = "Admin" });
+    var currentUserId = User.GetUserId();
+}
+
+<div class="panel">
+    <div class="panel-header">
+        <span class="text-muted small">@Model.Count kullanıcı</span>
+        <a asp-action="Create" class="btn btn-primary"><i class="bi bi-person-plus"></i> Yeni kullanıcı</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0 admin-table">
+            <thead>
+                <tr>
+                    <th>Kullanıcı</th>
+                    <th>Rol</th>
+                    <th class="text-center">Haber</th>
+                    <th>Kayıt tarihi</th>
+                    <th class="text-center">Aktif</th>
+                    <th class="text-end">İşlemler</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model)
+                {
+                    var roleClass = user.Role == Roles.Admin ? "text-bg-dark" : user.Role == Roles.Editor ? "text-bg-primary" : "text-bg-light border";
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="avatar">@user.FullName.Substring(0, 1)</span>
+                                <div>
+                                    <div class="fw-medium">
+                                        @user.FullName
+                                        @if (user.Id == currentUserId) { <span class="badge text-bg-info ms-1">Siz</span> }
+                                    </div>
+                                    <div class="small text-muted">@user.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td><span class="badge @roleClass">@Roles.DisplayName(user.Role)</span></td>
+                        <td class="text-center">@user.News.Count</td>
+                        <td class="small">@user.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td class="text-center">
+                            <div class="form-check form-switch d-inline-block">
+                                <input class="form-check-input js-toggle" type="checkbox" role="switch" checked="@user.IsActive"
+                                       disabled="@(user.Id == currentUserId)"
+                                       data-url="@toggleUrl" data-id="@user.Id" aria-label="Aktif" />
+                            </div>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a asp-action="Edit" asp-route-id="@user.Id" class="btn btn-sm btn-outline-primary" title="Düzenle"><i class="bi bi-pencil"></i></a>
+                            @if (user.Id != currentUserId)
+                            {
+                                <form asp-action="Delete" asp-route-id="@user.Id" method="post" class="d-inline js-confirm"
+                                      data-confirm="@user.FullName kullanıcısı silinecek. Emin misiniz?">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Sil"><i class="bi bi-trash"></i></button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

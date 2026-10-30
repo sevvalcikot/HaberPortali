@@ -1,0 +1,142 @@
+@model List<TagListItemViewModel>
+@{
+    ViewData["Title"] = "Etiketler";
+}
+
+<div class="row g-3">
+    <div class="col-lg-4">
+        <div class="panel p-3">
+            <h2 class="panel-title mb-3">Yeni etiket</h2>
+            @* Bu form AJAX ile gönderilir; sayfa yenilenmeden tabloya yeni satır eklenir. *@
+            <form id="tagForm" autocomplete="off">
+                <div class="input-group">
+                    <input type="text" id="tagName" name="name" class="form-control" placeholder="Örn. yapay zekâ" maxlength="50" required />
+                    <button type="submit" class="btn btn-primary" id="tagSubmit"><i class="bi bi-plus-lg"></i> Ekle</button>
+                </div>
+                <div class="text-danger small mt-1" id="tagError"></div>
+            </form>
+            <p class="small text-muted mt-3 mb-0">
+                Etiketler haber eklerken de yazılabilir. Burada silinen etiket, bağlı olduğu haberlerden de kaldırılır.
+            </p>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="panel">
+            <div class="panel-header">
+                <h2 class="panel-title"><span id="tagCount">@Model.Count</span> etiket</h2>
+                <input type="search" id="tagFilter" class="form-control form-control-sm" style="max-width: 220px;" placeholder="Listede ara" />
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 admin-table">
+                    <thead>
+                        <tr>
+                            <th>Etiket</th>
+                            <th>Adres</th>
+                            <th class="text-center">Haber</th>
+                            <th class="text-end"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="tagTableBody">
+                        @foreach (var tag in Model)
+                        {
+                            <tr data-tag-row="@tag.Id">
+                                <td class="fw-medium tag-name"><i class="bi bi-hash text-muted"></i>@tag.Name</td>
+                                <td><code>/etiket/@tag.Slug</code></td>
+                                <td class="text-center">@tag.NewsCount</td>
+                                <td class="text-end">
+                                    <button type="button" class="btn btn-sm btn-outline-danger js-delete-tag" data-id="@tag.Id" data-name="@tag.Name" data-count="@tag.NewsCount">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(function () {
+            const createUrl = '@Url.Action("Create", "Tag", new { area = "Admin" })';
+            const deleteUrl = '@Url.Action("Delete", "Tag", new { area = "Admin" })';
+
+            function updateCount() {
+                $('#tagCount').text($('#tagTableBody tr[data-tag-row]').length);
+            }
+
+            // Yeni etiket ekle (AJAX)
+            $('#tagForm').on('submit', function (e) {
+                e.preventDefault();
+                const name = $('#tagName').val().trim();
+                $('#tagError').text('');
+                if (name.length < 2) {
+                    $('#tagError').text('Etiket adı en az 2 karakter olmalıdır.');
+                    return;
+                }
+
+                $('#tagSubmit').prop('disabled', true);
+                Admin.post(createUrl, { name: name })
+                    .done(function (res) {
+                        if (!res.success) {
+                            $('#tagError').text(res.message);
+                            return;
+                        }
+                        const t = res.tag;
+                        const $row = $('<tr>').attr('data-tag-row', t.id).addClass('row-flash')
+                            .append($('<td class="fw-medium tag-name">').append('<i class="bi bi-hash text-muted"></i>').append(document.createTextNode(t.name)))
+                            .append($('<td>').append($('<code>').text('/etiket/' + t.slug)))
+                            .append($('<td class="text-center">').text(t.newsCount))
+                            .append($('<td class="text-end">').append(
+                                $('<button type="button" class="btn btn-sm btn-outline-danger js-delete-tag"><i class="bi bi-trash"></i></button>')
+                                    .attr('data-id', t.id).attr('data-name', t.name).attr('data-count', 0)));
+                        $('#tagTableBody').prepend($row);
+                        $('#tagName').val('').trigger('focus');
+                        updateCount();
+                        Admin.toast(res.message);
+                    })
+                    .fail(function () { Admin.toast('Etiket eklenirken bir hata oluştu.', 'danger'); })
+                    .always(function () { $('#tagSubmit').prop('disabled', false); });
+            });
+
+            // Etiket sil (AJAX)
+            $(document).on('click', '.js-delete-tag', function () {
+                const $btn = $(this);
+                const count = parseInt($btn.attr('data-count'), 10) || 0;
+                let question = '"' + $btn.attr('data-name') + '" etiketi silinsin mi?';
+                if (count > 0) {
+                    question += '\n' + count + ' haberden de kaldırılacak.';
+                }
+                if (!confirm(question)) return;
+
+                $btn.prop('disabled', true);
+                Admin.post(deleteUrl, { id: $btn.attr('data-id') })
+                    .done(function (res) {
+                        if (res.success) {
+                            $btn.closest('tr').fadeOut(200, function () { $(this).remove(); updateCount(); });
+                            Admin.toast(res.message);
+                        } else {
+                            Admin.toast(res.message, 'danger');
+                            $btn.prop('disabled', false);
+                        }
+                    })
+                    .fail(function () {
+                        Admin.toast('Etiket silinirken bir hata oluştu.', 'danger');
+                        $btn.prop('disabled', false);
+                    });
+            });
+
+            // Listede anlık arama (sunucuya gitmeden)
+            $('#tagFilter').on('input', function () {
+                const term = $(this).val().toLocaleLowerCase('tr-TR');
+                $('#tagTableBody tr[data-tag-row]').each(function () {
+                    const name = $(this).find('.tag-name').text().toLocaleLowerCase('tr-TR');
+                    $(this).toggle(name.indexOf(term) !== -1);
+                });
+            });
+        });
+    </script>
+}

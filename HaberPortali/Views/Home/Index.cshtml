@@ -1,0 +1,113 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = null;
+}
+
+@if (Model.Headlines.Any())
+{
+    <section class="row g-4 mb-5">
+        <div class="col-lg-8">
+            <div id="headlineCarousel" class="carousel slide headline-carousel" data-bs-ride="carousel" data-bs-interval="6000">
+                <div class="carousel-inner">
+                    @for (var i = 0; i < Model.Headlines.Count; i++)
+                    {
+                        var news = Model.Headlines[i];
+                        <div class="carousel-item @(i == 0 ? "active" : "")">
+                            <a href="/haber/@news.Id/@news.Slug" class="headline-link">
+                                <img src="@(news.ImagePath ?? "/images/placeholder.svg")" alt="@news.Title" />
+                                <div class="headline-caption">
+                                    <span class="kicker kicker-light">@news.Category.Name</span>
+                                    <h2>@news.Title</h2>
+                                    <p class="d-none d-md-block">@news.Summary</p>
+                                </div>
+                            </a>
+                        </div>
+                    }
+                </div>
+                <div class="headline-indicators">
+                    @for (var i = 0; i < Model.Headlines.Count; i++)
+                    {
+                        <button type="button" data-bs-target="#headlineCarousel" data-bs-slide-to="@i"
+                                class="@(i == 0 ? "active" : "")" aria-current="@(i == 0 ? "true" : "false")" aria-label="Manşet @(i + 1)">@(i + 1)</button>
+                    }
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#headlineCarousel" data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Önceki</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#headlineCarousel" data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Sonraki</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <h2 class="section-title"><span>Son haberler</span></h2>
+            <ul class="latest-list">
+                @foreach (var news in Model.Latest)
+                {
+                    <li>
+                        <span class="time">@news.PublishedAt.ToString("HH:mm")</span>
+                        <div>
+                            <a href="/haber/@news.Id/@news.Slug">@news.Title</a>
+                            <span class="meta">@news.Category.Name</span>
+                        </div>
+                    </li>
+                }
+            </ul>
+        </div>
+    </section>
+}
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        @foreach (var grp in Model.Sections)
+        {
+            <section class="mb-5">
+                <h2 class="section-title">
+                    <span>@grp.Category.Name</span>
+                    <a href="/kategori/@grp.Category.Slug" class="section-more">Tümü <i class="bi bi-arrow-right"></i></a>
+                </h2>
+                <div class="row g-4">
+                    @foreach (var news in grp.Items.Take(1))
+                    {
+                        <div class="col-md-6">
+                            <partial name="_NewsCard" model="news" />
+                        </div>
+                    }
+                    <div class="col-md-6">
+                        <ul class="compact-list">
+                            @foreach (var news in grp.Items.Skip(1))
+                            {
+                                <li>
+                                    <a href="/haber/@news.Id/@news.Slug" class="compact-item">
+                                        <img src="@(news.ImagePath ?? "/images/placeholder.svg")" alt="" loading="lazy" />
+                                        <span>
+                                            <span class="compact-title">@news.Title</span>
+                                            <span class="meta">@TextHelper.TimeAgo(news.PublishedAt)</span>
+                                        </span>
+                                    </a>
+                                </li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </section>
+        }
+
+        @if (!Model.Sections.Any())
+        {
+            <div class="empty-state">
+                <i class="bi bi-newspaper"></i>
+                <p>Henüz yayımlanmış haber yok.</p>
+            </div>
+        }
+    </div>
+
+    <aside class="col-lg-4">
+        <div class="sticky-lg-top" style="top: 1rem;">
+            <partial name="_MostRead" model="Model.MostRead" />
+        </div>
+    </aside>
+</div>

@@ -1,0 +1,7 @@
+@model List<Category>
+<ul class="list-unstyled footer-links footer-columns">
+    @foreach (var category in Model)
+    {
+        <li><a href="/kategori/@category.Slug">@category.Name</a></li>
+    }
+</ul>

@@ -1,0 +1,74 @@
+@model UserFormViewModel
+@{
+    var isEdit = Model.Id > 0;
+}
+
+<div class="row">
+    <div class="col-lg-7 col-xl-6">
+        <form asp-action="@(isEdit ? "Edit" : "Create")" method="post" class="panel p-3 p-md-4" novalidate autocomplete="off">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+            <div class="mb-3">
+                <label asp-for="FullName" class="form-label"></label>
+                <input asp-for="FullName" class="form-control" />
+                <span asp-validation-for="FullName" class="text-danger small"></span>
+            </div>
+
+            <div class="mb-3">
+                <label asp-for="Email" class="form-label"></label>
+                <input asp-for="Email" class="form-control" autocomplete="off" />
+                <span asp-validation-for="Email" class="text-danger small"></span>
+            </div>
+
+            <div class="row g-3 mb-3">
+                <div class="col-sm-6">
+                    <label asp-for="Role" class="form-label"></label>
+                    <select asp-for="Role" class="form-select">
+                        @foreach (var role in Roles.All)
+                        {
+                            <option value="@role">@Roles.DisplayName(role)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="Role" class="text-danger small"></span>
+                </div>
+                <div class="col-sm-6 d-flex align-items-end">
+                    <div class="form-check form-switch mb-2">
+                        <input asp-for="IsActive" class="form-check-input" role="switch" />
+                        <label asp-for="IsActive" class="form-check-label"></label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="small text-muted mb-2">
+                <strong>Yönetici:</strong> her şeye erişir.
+                <strong>Editör:</strong> haber, yorum ve etiket yönetir.
+                <strong>Üye:</strong> panele giremez, sitede yorum yapar.
+            </div>
+
+            <hr />
+
+            <div class="row g-3 mb-4">
+                <div class="col-sm-6">
+                    <label asp-for="Password" class="form-label"></label>
+                    <input asp-for="Password" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="text-danger small"></span>
+                </div>
+                <div class="col-sm-6">
+                    <label asp-for="ConfirmPassword" class="form-label"></label>
+                    <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+                </div>
+                @if (isEdit)
+                {
+                    <div class="col-12 form-text mt-1">Şifreyi değiştirmek istemiyorsanız bu alanları boş bırakın.</div>
+                }
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check2"></i> Kaydet</button>
+                <a asp-action="Index" class="btn btn-light">Vazgeç</a>
+            </div>
+        </form>
+    </div>
+</div>

@@ -1,0 +1,16 @@
+@model News
+<article class="news-card">
+    <a href="/haber/@Model.Id/@Model.Slug" class="news-card-img">
+        <img src="@(Model.ImagePath ?? "/images/placeholder.svg")" alt="@Model.Title" loading="lazy" />
+        @if (Model.IsBreaking)
+        {
+            <span class="badge-breaking">Son dakika</span>
+        }
+    </a>
+    <div class="news-card-body">
+        <a href="/kategori/@Model.Category.Slug" class="kicker">@Model.Category.Name</a>
+        <h3 class="news-card-title"><a href="/haber/@Model.Id/@Model.Slug">@Model.Title</a></h3>
+        <p class="news-card-summary">@TextHelper.Shorten(Model.Summary, 120)</p>
+        <div class="meta"><i class="bi bi-clock"></i> @TextHelper.TimeAgo(Model.PublishedAt)</div>
+    </div>
+</article>
